@@ -8,20 +8,22 @@ import (
 	"os"
 	"encoding/json"
 	"bytes"
+	"strings"
 	"io/ioutil"
 )
 
-type installation_way struct {
-	name	string `json:name`
-	commands	[]string `json:commands`
+type InstallationWay struct {
+	Name	string `json:name`
+	TestCmd	string `json:testCmd`
+	Commands	[]string `json:commands`
 }
 
-type installation struct {
-	name	string `json:name`
-	installation	[]installation_way `json:installation`
+type Installation struct {
+	Name	string `json:name`
+	Ways	[]InstallationWay `json:way`
 }
 
-var installations []installation
+var installations []Installation
 
 func initModules() {
 	files, err := ioutil.ReadDir("modules/")
@@ -31,7 +33,6 @@ func initModules() {
 	}
 
 	for _, file := range files {
-		fmt.Println(file.Name(), "...")
 		jsonFile, err := os.Open("modules/"+file.Name())
 		if err != nil {
 			fmt.Println(err)
@@ -40,52 +41,71 @@ func initModules() {
 		defer jsonFile.Close()
 		byteValue, _ := ioutil.ReadAll(jsonFile)
 
-		var result map[string]interface{}
-		json.Unmarshal([]byte(byteValue), &result)
+		var result Installation
+		json.Unmarshal(byteValue, &result)
 
-		array := result["installation"].([]interface{})
-		for _, way := range array {
-			fmt.Println(way)
-		}
-		
+		installations = append(installations, result)
 	}
 }
 
-func executeCommand(command string, output bool) {
-
-	cmd := exec.Command("/bin/bash", "-c", command)
+func executeCommand(command string, output bool) bool {
+	fmt.Println("Executing '"+command+"'...")
+	array := strings.Fields(command)
+	cmd := exec.Command(array[0], array[1:]...)
 
 	var out bytes.Buffer
 	cmd.Stdout = &out
 
-	err := cmd.Run()
+	
+    if err := cmd.Run(); err != nil {
+		if !output {
+			return false
+		}
+        fmt.Println(err)
+		return false
+    }
 
-	if !output {
-		return
-	}
-	if err != nil {
-		fmt.Println(command, ":", err)
-		return
-	}
 
+	if !output{
+		return true
+	}
 	fmt.Println(out.String())
+	return true
 }
 
-func install(installation installation) {
-	fmt.Println("Installing", installation.name, "...")
-	for i := 0; i < len(installation.installation[0].commands); i++ {
-		command := installation.installation[0].commands[i]
-		go executeCommand(command, true)
+func install(installation Installation) {
+	fmt.Println("Installing", installation.Name, "...")
+	way, isSuccess := getWay(installation)
+	if !isSuccess {
+		fmt.Println("Installation impossible car aucun package manager détecté")
+		return
 	}
+	installWay(way)
+}
+
+func installWay(way InstallationWay) {
+	for _, command := range way.Commands {
+		executeCommand(command, true)
+	}
+}
+
+func getWay(installation Installation) (InstallationWay, bool) {
+	var return_way InstallationWay
+	success := false
+	for _, way := range installation.Ways {
+		isSuccess := executeCommand(way.TestCmd, false)
+		if isSuccess {
+			return_way = way
+			success = true
+			break
+		}
+	}
+	return return_way, success
 }
 
 func main() {
 
 	initModules()
-
-	if(true){
-		return
-	}
 
 	app := tview.NewApplication()
 	table := tview.NewTable().
@@ -97,7 +117,7 @@ func main() {
 			SetAlign(tview.AlignCenter))
 	
 	for i := 0; i < len(installations); i++ {
-		table.SetCell(i+1, 0, tview.NewTableCell(installations[i].name).
+		table.SetCell(i+1, 0, tview.NewTableCell(installations[i].Name).
 			SetTextColor(tcell.ColorWhite).
 			SetAlign(tview.AlignCenter))
 	}

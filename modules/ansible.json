@@ -1,13 +1,21 @@
 {
     "name": "Ansible",
-    "installation": [
+    "ways": [
         {
             "name": "apt",
-            "commands": []
+            "testCmd": "apt -v",
+            "commands": [
+                "apt install -y ansible",
+                "echo 'coucou les gens'"
+            ]
         },
         {
             "name": "pacman",
-            "commands": []
+            "testCmd": "pacman -V",
+            "commands": [
+                "pacman -S ansible --noconfirm",
+                "prout"
+            ]
         }
     ]
 }
