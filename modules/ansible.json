@@ -1,0 +1,13 @@
+{
+    "name": "Ansible",
+    "installation": [
+        {
+            "name": "apt",
+            "commands": []
+        },
+        {
+            "name": "pacman",
+            "commands": []
+        }
+    ]
+}
