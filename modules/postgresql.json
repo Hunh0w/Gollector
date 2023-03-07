@@ -1,0 +1,19 @@
+{
+    "name": "postgresql",
+    "ways": [
+        {
+            "name": "apt",
+            "testCmd": "apt -v",
+            "commands": [
+                "apt install -y postgresql"
+            ]
+        },
+        {
+            "name": "pacman",
+            "testCmd": "pacman -V",
+            "commands": [
+                "pacman -S postgresql --noconfirm"
+            ]
+        }
+    ]
+}

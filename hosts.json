@@ -1,0 +1,12 @@
+[
+    {
+        "HostAddress": "192.168.122.181",
+        "User": "root",
+        "Password": "root"
+    },
+    {
+        "HostAddress": "192.168.122.113",
+        "User": "root",
+        "Password": "root"
+    }
+]
