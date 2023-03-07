@@ -1,5 +1,6 @@
 {
     "name": "Ansible",
+    "description": "Version par défaut de Ansible",
     "ways": [
         {
             "name": "pacman",

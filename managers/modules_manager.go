@@ -15,7 +15,8 @@ type InstallationWay struct {
 
 type Installation struct {
 	Name	string `json:name`
-	Ways	[]InstallationWay `json:way`
+	Description	string `json:description`
+	Ways	[]InstallationWay `json:ways`
 }
 
 
@@ -40,6 +41,8 @@ func InitModules() []Installation {
 
 		var result Installation
 		json.Unmarshal(byteValue, &result)
+		
+		fmt.Println(result)
 
 		installations = append(installations, result)
 	}

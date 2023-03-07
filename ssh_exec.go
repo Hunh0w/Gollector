@@ -43,9 +43,9 @@ func InstallToHost(installs []*managers.Installation, ssh_host *managers.SSH_Hos
 				Command := iway.Commands[i2]
 				result, err := client.Exec(Command);
 				if err != nil {
-					fmt.Printf("%s[%s]%s ERROR: %s\n", colorPurple, ssh_host.HostAddress, colorRed, err)
+					fmt.Printf("%s[%s]%s ERROR: \n%s\n", colorPurple, ssh_host.HostAddress, colorRed, err)
 				}
-				fmt.Printf("%s[%s]%s -> %s%s%s installation result: %s%s%s\n", colorPurple, ssh_host.HostAddress, colorGreen, colorCyan, install.Name, colorGreen, colorGray, string(result), colorReset)
+				fmt.Printf("%s[%s]%s -> %s%s%s installation result: \n%s%s%s\n", colorPurple, ssh_host.HostAddress, colorGreen, colorCyan, install.Name, colorGreen, colorGray, string(result), colorReset)
 			}
 				
 			break
