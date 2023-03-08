@@ -34,7 +34,6 @@ func GetItemsWithOffset(items []item, offset int, amount int) []item {
 }
 
 func (m *model) Init() tea.Cmd {
-
 	return nil
 }
 
@@ -45,15 +44,6 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	return m, nil
 }
-
-/*
-0 ; 0
-1 ; 0
-2 ; 0
-3 ; 0
-3 ; 1
-3 ; 2
-*/
 
 func (m *model) handleKeyMsg(msg tea.KeyMsg) tea.Cmd {
 	switch msg.String() {
@@ -79,7 +69,8 @@ func (m *model) handleKeyMsg(msg tea.KeyMsg) tea.Cmd {
 		}
 
 	case "down":
-		if m.item+1 < 4 {
+		currentItems := GetItemsWithOffset(m.installs, m.currentOffset, 4)
+		if m.item+1 < 4 && m.item+1 < len(currentItems) {
 			m.item++
 		} else {
 
@@ -94,7 +85,8 @@ func (m *model) handleKeyMsg(msg tea.KeyMsg) tea.Cmd {
 
 func (m *model) View() string {
 	curInstall := m.item
-	return m.renderList("Que voulez-vous installer ?", m.installs, curInstall)
+	title := "Que voulez-vous installer ? " + color.HEX("40fcff").Sprintf("(%d modules)", len(m.installs))
+	return m.renderList(title, m.installs, curInstall)
 }
 
 func (m *model) renderList(header string, items []item, selected int) string {
@@ -113,7 +105,7 @@ func (m *model) renderList(header string, items []item, selected int) string {
 		}
 
 		installDesc := color.HEX("3f3f3f").Sprintf(installations[item.index].Description)
-		out += fmt.Sprintf("\t%s [%s] %s\n\t\t%s\n\n", sel, check, installName, installDesc)
+		out += fmt.Sprintf("\t%s%d) %s [%s] %s\n\t\t%s\n\n", "\033[0m", i+m.currentOffset+1, sel, check, installName, installDesc)
 	}
 
 	out += color.HEX("3f3f3f").Sprintf("\n\n  Space: ") +
@@ -125,11 +117,9 @@ func (m *model) renderList(header string, items []item, selected int) string {
 
 func GetItems() []item {
 	var items []item
-	for a := 0; a < 2; a++ {
-		for i := 0; i < len(installations); i++ {
-			item := item{index: i, checked: false}
-			items = append(items, item)
-		}
+	for i := 0; i < len(installations); i++ {
+		item := item{index: i, checked: false}
+		items = append(items, item)
 	}
 
 	return items

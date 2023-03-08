@@ -55,7 +55,7 @@ func InstallToHost(installs []*managers.Installation, ssh_host *managers.SSH_Hos
 			break
 		}
 		if !pkg_detected {
-			fmt.Printf("%s[%s] %s%s%s n'a pas pu être installé car aucun package manager n'a été détecté.\n", colorPurple, ssh_host.HostAddress, colorPurple, install.Name, colorRed)
+			fmt.Printf("%s[%s] %s%s%s n'a pas pu être installé.\n", colorPurple, ssh_host.HostAddress, colorPurple, install.Name, colorRed)
 		}
 	}
 

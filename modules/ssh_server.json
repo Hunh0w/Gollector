@@ -1,19 +1,19 @@
 {
-    "name": "Java (Default Version)",
+    "name": "SSH Server",
     "description": "Version par défaut",
     "ways": [
         {
             "name": "apt",
             "testCmd": "apt -v",
             "commands": [
-                "apt install -y default-jre"
+                "apt install -y openssh-server"
             ]
         },
         {
             "name": "pacman",
             "testCmd": "pacman -V",
             "commands": [
-                "pacman -S jre-openjdk --noconfirm"
+                "pacman -S openssh --noconfirm"
             ]
         }
     ]

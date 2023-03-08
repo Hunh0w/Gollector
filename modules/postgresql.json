@@ -1,13 +1,12 @@
 {
     "name": "PostgreSQL",
-    "description": "Version par défaut de PostgreSQL",
+    "description": "Version par défaut",
     "ways": [
         {
             "name": "apt",
             "testCmd": "apt -v",
             "commands": [
-                "apt install -y postgresql",
-                "echo 'Installation finished !'"
+                "apt install -y postgresql"
             ]
         },
         {

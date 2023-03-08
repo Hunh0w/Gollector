@@ -1,19 +1,21 @@
 {
-    "name": "Java (Default Version)",
+    "name": "Docker",
     "description": "Version par défaut",
     "ways": [
         {
             "name": "apt",
             "testCmd": "apt -v",
             "commands": [
-                "apt install -y default-jre"
+                "apt install -y docker.io",
+                "docker -v"
             ]
         },
         {
             "name": "pacman",
             "testCmd": "pacman -V",
             "commands": [
-                "pacman -S jre-openjdk --noconfirm"
+                "pacman -S docker --noconfirm",
+                "docker -v"
             ]
         }
     ]
