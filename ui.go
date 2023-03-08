@@ -1,64 +1,150 @@
 package main
 
 import (
-	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
+	"fmt"
 	"gollector/managers"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/gookit/color"
 )
 
+type model struct {
+	installs      []item
+	list, item    int
+	currentOffset int
+}
+
+type item struct {
+	index   int
+	checked bool
+}
+
+var selectedInstalls []*managers.Installation
+
+func GetItemsWithOffset(items []item, offset int, amount int) []item {
+	var itemsWithOffset []item
+	for i := 0; i < amount; i++ {
+
+		itemsWithOffset = append(itemsWithOffset, items[i])
+	}
+	return itemsWithOffset
+}
+
+func (m *model) Init() tea.Cmd {
+
+	return nil
+}
+
+func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch typed := msg.(type) {
+	case tea.KeyMsg:
+		return m, m.handleKeyMsg(typed)
+	}
+	return m, nil
+}
+
+func (m *model) handleKeyMsg(msg tea.KeyMsg) tea.Cmd {
+	switch msg.String() {
+	case "esc", "ctrl+c":
+		return tea.Quit
+	case " ":
+		switch m.list {
+		case 0:
+			m.installs[m.item].checked = !m.installs[m.item].checked
+		}
+	case "enter":
+		for i := 0; i < len(m.installs); i++ {
+			item := m.installs[i]
+			if item.checked {
+				selectedInstalls = append(selectedInstalls, &installations[i])
+			}
+		}
+		return tea.Quit
+	case "up":
+		if m.item > 0 {
+			m.item--
+		} else if m.list > 0 {
+			m.list--
+			m.item = 3
+		}
+		if m.currentOffset > 0 {
+			m.currentOffset--
+		}
+	case "down":
+		switch m.list {
+		case 0:
+			if m.item+1 < 4 {
+				m.item++
+			} else {
+				m.list++
+				m.item = 0
+			}
+		}
+		itemsTest := GetItemsWithOffset(m.installs, m.currentOffset+1, 4)
+		if len(itemsTest) > 0 {
+			m.currentOffset++
+		}
+	}
+	return nil
+}
+
+func (m *model) View() string {
+	curInstall := -1
+	switch m.list {
+	case 0:
+		curInstall = m.item
+	}
+	return m.renderList("Que voulez-vous installer ?", m.installs, curInstall)
+}
+
+func (m *model) renderList(header string, items []item, selected int) string {
+	out := color.HEX("be5bff").Sprintf("\n-> " + header + "\n\n")
+	for i, item := range GetItemsWithOffset(items, m.currentOffset, 4) {
+		sel := "  "
+		if i == selected {
+			sel = "->"
+		}
+		sel = color.HEX("62f6ff").Sprintf(sel)
+		check := " "
+		installName := color.HEX("af0000").Sprintf(installations[item.index].Name)
+		if items[i].checked {
+			check = color.New(color.FgGreen, color.BgBlack).Sprintf("✓")
+			installName = color.HEX("00af18").Sprintf(installations[item.index].Name)
+		}
+
+		installDesc := color.HEX("3f3f3f").Sprintf(installations[item.index].Description)
+		out += fmt.Sprintf("\t%s [%s] %s\n\t\t%s\n\n", sel, check, installName, installDesc)
+	}
+
+	out += color.HEX("3f3f3f").Sprintf("\n\n  Space: ") +
+		color.HEX("8700c1").Sprintf("Select install") + "\n  " +
+		color.HEX("3f3f3f").Sprintf("Enter: ") +
+		color.HEX("8700c1").Sprintf("Start install on all provided machines\n\n")
+	return out
+}
+
+func GetItems() []item {
+	var items []item
+	for a := 0; a < 2; a++ {
+		for i := 0; i < len(installations); i++ {
+			item := item{index: i, checked: false}
+			items = append(items, item)
+		}
+	}
+
+	return items
+}
+
 func ui() {
-	app := tview.NewApplication()
-	table := tview.NewTable().
-		SetBorders(true)
-
-	table.SetCell(0, 0, tview.NewTableCell("Que voulez-vous installer ?").
-			SetExpansion(1).
-			SetTextColor(tcell.ColorPurple).
-			SetAlign(tview.AlignCenter))
-	
-	for i := 0; i < len(installations); i++ {
-		table.SetCell(i+1, 0, tview.NewTableCell(installations[i].Name).
-			SetTextColor(tcell.ColorWhite).
-			SetAlign(tview.AlignCenter))
+	m := &model{
+		installs:      GetItems(),
+		currentOffset: 0,
 	}
-
-	table.SetCell(len(installations)+1, 0, tview.NewTableCell("Valider").
-			SetTextColor(tcell.ColorGreen).
-			SetAlign(tview.AlignCenter))
-
-	table.SetFixed(1, 1).SetDoneFunc(func(key tcell.Key) {
-		if key == tcell.KeyEscape {
-			app.Stop()
-		}
-	}).SetSelectedFunc(func(row int, column int) {
-		if row >= 1 && row <= len(installations) {
-			cell := table.GetCell(row, column)
-			color := cell.Color
-			if color == tcell.ColorBlue {
-				cell.SetTextColor(tcell.ColorWhite)
-				return
-			}
-			cell.SetTextColor(tcell.ColorBlue)
-			return
-		}
-		if row == len(installations)+1 {
-			app.Stop()
-			var installs []*managers.Installation
-			for i := 0; i < len(installations); i++ {
-				color := table.GetCell(i+1, 0).Color
-				if color == tcell.ColorBlue {
-					installs = append(installs, &installations[i])
-				}
-			}
-			InstallAll(installs)
-		}
-	}).SetSelectable(true, true)
-
-	flex := tview.NewFlex().
-		AddItem(table, 0, 1, false).
-		SetDirection(tview.FlexRow)
-
-	if err := app.SetRoot(flex, true).SetFocus(table).Run(); err != nil {
-		panic(err)
+	if err := tea.NewProgram(m).Start(); err != nil {
+		panic(fmt.Sprintf("failed to run program: %v", err))
 	}
+	if len(selectedInstalls) > 0 {
+		color.HEX("62f6ff").Printf("\n\n[----- Installation en cours -----]\n\n")
+	}
+	InstallAll(selectedInstalls)
 }

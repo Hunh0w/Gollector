@@ -1,14 +1,13 @@
 package main
 
 import (
-	"fmt"
-	"os/exec"
 	"bytes"
+	"fmt"
+	"gollector/managers"
+	"os/exec"
 	"strings"
 	"sync"
-	"gollector/managers"
 )
-
 
 // Global Vars
 var installations []managers.Installation
@@ -20,17 +19,16 @@ var hosts []managers.SSH_Host
 func main() {
 
 	// Init required content
-	installations = managers.InitModules();
-	hosts = managers.InitHosts();	
+	installations = managers.InitModules()
+	hosts = managers.InitHosts()
 
-	ui2()
+	ui()
 }
-
 
 /*
 // Goroutines Runner
 */
-func InstallAll(installs []*managers.Installation){
+func InstallAll(installs []*managers.Installation) {
 	var wg sync.WaitGroup
 	for i1 := 0; i1 < len(hosts); i1++ {
 		host := hosts[i1]
@@ -40,30 +38,26 @@ func InstallAll(installs []*managers.Installation){
 	wg.Wait()
 }
 
-
-
 /*
 // Local Command Execution Utils
 */
 func ExecuteCommand(command string, output bool) bool {
-	fmt.Println("Executing '"+command+"'...")
+	fmt.Println("Executing '" + command + "'...")
 	array := strings.Fields(command)
 	cmd := exec.Command(array[0], array[1:]...)
 
 	var out bytes.Buffer
 	cmd.Stdout = &out
 
-	
-    if err := cmd.Run(); err != nil {
+	if err := cmd.Run(); err != nil {
 		if !output {
 			return false
 		}
-        fmt.Println(err)
+		fmt.Println(err)
 		return false
-    }
+	}
 
-
-	if !output{
+	if !output {
 		return true
 	}
 	fmt.Println(out.String())
