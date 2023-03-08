@@ -6,7 +6,8 @@
             "name": "apt",
             "testCmd": "apt -v",
             "commands": [
-                "apt install -y postgresql"
+                "apt install -y postgresql",
+                "echo 'Installation finished !'"
             ]
         },
         {

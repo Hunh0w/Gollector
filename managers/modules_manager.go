@@ -1,24 +1,23 @@
 package managers
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"encoding/json"
 )
 
 type InstallationWay struct {
-	Name	string `json:name`
-	TestCmd	string `json:testCmd`
-	Commands	[]string `json:commands`
+	Name     string   `json:name`
+	TestCmd  string   `json:testCmd`
+	Commands []string `json:commands`
 }
 
 type Installation struct {
-	Name	string `json:name`
-	Description	string `json:description`
-	Ways	[]InstallationWay `json:ways`
+	Name        string            `json:name`
+	Description string            `json:description`
+	Ways        []InstallationWay `json:ways`
 }
-
 
 func InitModules() []Installation {
 	files, err := ioutil.ReadDir("modules/")
@@ -31,7 +30,7 @@ func InitModules() []Installation {
 	var installations []Installation
 
 	for _, file := range files {
-		jsonFile, err := os.Open("modules/"+file.Name())
+		jsonFile, err := os.Open("modules/" + file.Name())
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -41,8 +40,6 @@ func InitModules() []Installation {
 
 		var result Installation
 		json.Unmarshal(byteValue, &result)
-		
-		fmt.Println(result)
 
 		installations = append(installations, result)
 	}

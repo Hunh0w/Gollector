@@ -10,7 +10,7 @@ import (
 
 type model struct {
 	installs      []item
-	list, item    int
+	item          int
 	currentOffset int
 }
 
@@ -23,9 +23,12 @@ var selectedInstalls []*managers.Installation
 
 func GetItemsWithOffset(items []item, offset int, amount int) []item {
 	var itemsWithOffset []item
+	items_len := len(items)
 	for i := 0; i < amount; i++ {
-
-		itemsWithOffset = append(itemsWithOffset, items[i])
+		if items_len-1 < i+offset {
+			break
+		}
+		itemsWithOffset = append(itemsWithOffset, items[i+offset])
 	}
 	return itemsWithOffset
 }
@@ -43,57 +46,54 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+/*
+0 ; 0
+1 ; 0
+2 ; 0
+3 ; 0
+3 ; 1
+3 ; 2
+*/
+
 func (m *model) handleKeyMsg(msg tea.KeyMsg) tea.Cmd {
 	switch msg.String() {
 	case "esc", "ctrl+c":
 		return tea.Quit
 	case " ":
-		switch m.list {
-		case 0:
-			m.installs[m.item].checked = !m.installs[m.item].checked
-		}
+		m.installs[m.item+m.currentOffset].checked = !m.installs[m.item+m.currentOffset].checked
 	case "enter":
 		for i := 0; i < len(m.installs); i++ {
 			item := m.installs[i]
 			if item.checked {
-				selectedInstalls = append(selectedInstalls, &installations[i])
+				selectedInstalls = append(selectedInstalls, &installations[item.index])
 			}
 		}
 		return tea.Quit
 	case "up":
 		if m.item > 0 {
 			m.item--
-		} else if m.list > 0 {
-			m.list--
-			m.item = 3
-		}
-		if m.currentOffset > 0 {
-			m.currentOffset--
-		}
-	case "down":
-		switch m.list {
-		case 0:
-			if m.item+1 < 4 {
-				m.item++
-			} else {
-				m.list++
-				m.item = 0
+		} else {
+			if m.currentOffset > 0 {
+				m.currentOffset--
 			}
 		}
-		itemsTest := GetItemsWithOffset(m.installs, m.currentOffset+1, 4)
-		if len(itemsTest) > 0 {
-			m.currentOffset++
+
+	case "down":
+		if m.item+1 < 4 {
+			m.item++
+		} else {
+
+			itemsTest := GetItemsWithOffset(m.installs, m.currentOffset+1, 4)
+			if len(itemsTest) >= 4 {
+				m.currentOffset++
+			}
 		}
 	}
 	return nil
 }
 
 func (m *model) View() string {
-	curInstall := -1
-	switch m.list {
-	case 0:
-		curInstall = m.item
-	}
+	curInstall := m.item
 	return m.renderList("Que voulez-vous installer ?", m.installs, curInstall)
 }
 
@@ -107,7 +107,7 @@ func (m *model) renderList(header string, items []item, selected int) string {
 		sel = color.HEX("62f6ff").Sprintf(sel)
 		check := " "
 		installName := color.HEX("af0000").Sprintf(installations[item.index].Name)
-		if items[i].checked {
+		if items[i+m.currentOffset].checked {
 			check = color.New(color.FgGreen, color.BgBlack).Sprintf("✓")
 			installName = color.HEX("00af18").Sprintf(installations[item.index].Name)
 		}
